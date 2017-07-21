@@ -1,7 +1,7 @@
 {
-  "name": "memoize-cache",
-  "version": "3.3.2",
-  "description": "A cache support for memoized functions",
+  "name": "memoize-cache-manager",
+  "version": "0.0.1",
+  "description": "A cache support for memoized functions (cache-manager adapter)",
   "main": "index.js",
   "scripts": {
     "test": "mocha tests/**/*.js",
@@ -17,7 +17,7 @@
     "memoize",
     "cache"
   ],
-  "repository": "git@github.com:sithmel/memoize-cache.git",
+  "repository": "git@github.com:sithmel/memoize-cache-manager.git",
   "author": "Maurizio Lupo <maurizio.lupo@gmail.com>",
   "license": "MIT",
   "devDependencies": {
