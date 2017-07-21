@@ -21,7 +21,7 @@ cacheManager: a cacheManager instance
 
 Example:
 ```js
-var Cache = require('memoize-cache/cache'); // or require('memoize-cache').cache;
+var Cache = require('memoize-cache-manager');
 var cacheManager = require('cache-manager'); // npm install cache-manager
 
 // using the id property of the first argument
