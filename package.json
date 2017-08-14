@@ -33,7 +33,7 @@
   "dependencies": {
     "async-deco": "^7.6.0",
     "md5-o-matic": "^0.1.1",
-    "memoize-cache": "^4.0.0"
+    "memoize-cache": "^5.0.0"
   },
   "optionalDependencies": {
     "snappy": "^5.0.4"

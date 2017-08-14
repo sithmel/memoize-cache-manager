@@ -572,4 +572,24 @@ describe('cache-manager', function () {
       });
     });
   });
+
+  it('removes a key', function (done) {
+    var getKey = function (key) {
+      return key;
+    };
+
+    var memoryCache = cacheManager.caching({store: 'memory', max: 100, ttl: 10});
+    var cache = new Cache({ cacheManager: memoryCache, key: getKey, });
+    cache.push(['k1'], 'result');
+    cache.query(['k1'], function (err, value) {
+      assert.equal(value.hit, 'result');
+      cache.purgeByKeys('k1', function (err) {
+        cache.query(['k1'], function (err, value) {
+          assert.isFalse(value.cached);
+          done();
+        });
+      });
+    });
+  });
+
 });
