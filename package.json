@@ -36,6 +36,6 @@
     "memoize-cache": "^5.0.0"
   },
   "optionalDependencies": {
-    "snappy": "^5.0.4"
+    "snappy": "^6.0.4"
   }
 }
