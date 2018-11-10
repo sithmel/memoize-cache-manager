@@ -32,7 +32,7 @@
     "mocha": "^5.2.0"
   },
   "dependencies": {
-    "memoize-cache": "^6.0.0"
+    "memoize-cache": "^6.0.2"
   },
   "optionalDependencies": {
     "snappy": "^6.0.4"
