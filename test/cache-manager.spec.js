@@ -10,10 +10,8 @@ var snappy = require('snappy')
 describe('cache-manager', function () {
   it('must translate args to key', function () {
     var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
-    var cache = new Cache({ cacheManager: memoryCache, key: function (n) { return n } })
+    var cache = new Cache({ cacheManager: memoryCache, getKey: function (n) { return n } })
     assert.equal(cache.getCacheKey('1'), '1')
-    assert.equal(cache.getCacheKey(1), 'c4ca4238a0b923820dcc509a6f75849b')
-    assert.equal(cache.getCacheKey({ d: 1 }), 'dc6f789c90af7a7f8156af120f33e3be')
   })
 
   it('returns the key', function () {
@@ -119,13 +117,13 @@ describe('cache-manager', function () {
 
   it('must return null key', function () {
     var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
-    var cache = new Cache({ cacheManager: memoryCache, key: function (n) { return null } })
+    var cache = new Cache({ cacheManager: memoryCache, getKey: function (n) { return null } })
     assert.equal(cache.getCacheKey('1'), null)
   })
 
   it('must not cache if key is null', function (done) {
     var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
-    var cache = new Cache({ cacheManager: memoryCache, key: function (n) { return null } })
+    var cache = new Cache({ cacheManager: memoryCache, getKey: function (n) { return null } })
     cache.push([], 'result', function (err) {
       if (err) return done(err)
       cache.query({}, function (err, res) {
@@ -142,7 +140,7 @@ describe('cache-manager', function () {
     var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
     var cache = new Cache({
       cacheManager: memoryCache,
-      key: function (n) {
+      getKey: function (n) {
         return n
       },
       maxAge: function (args, output) {
@@ -171,7 +169,7 @@ describe('cache-manager', function () {
       var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
       cache = new Cache({
         cacheManager: memoryCache,
-        key: function (data) {
+        getKey: function (data) {
           return data.test
         } })
       cache.push([{ test: '1' }], 'result1', function (err) {
@@ -217,7 +215,7 @@ describe('cache-manager', function () {
     beforeEach(function (done) {
       var memoryCache = cacheManager.caching({ store: redisStore, max: 100, ttl: 10 })
       cache = new Cache({ cacheManager: memoryCache,
-        key: function (data) {
+        getKey: function (data) {
           return data.test
         } })
       cache.push([{ test: '1' }], 'result1', function (err) {
@@ -257,57 +255,18 @@ describe('cache-manager', function () {
     })
   })
 
-  it('must configure cache: string key/object', function (done) {
-    var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
-    var cache = new Cache({ cacheManager: memoryCache,
-      key: function (data) {
-        return data.test
-      } })
-    cache.push([{ test: [1, 2] }], 'result1', function (err) {
-      if (err) return done(err)
-      cache.push([{ test: [3, 4] }], 'result2', function (err) {
-        if (err) return done(err)
-        cache.query([{ test: [1, 2] }], function (err, res1) {
-          if (err) return done(err)
-          assert.equal(res1.cached, true)
-          assert.equal(res1.key, 'f79408e5ca998cd53faf44af31e6eb45')
-          assert.equal(res1.hit, 'result1')
-          done()
-        })
-      })
-    })
-  })
-
   it('must configure cache: array key', function (done) {
     var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
     var cache = new Cache({ cacheManager: memoryCache,
-      key: function (data) {
+      getKey: function (data) {
         return data.test[0]
       } })
-    cache.push([{ test: [1, 2] }], 'result1', function (err) {
+    cache.push([{ test: ['1', 2] }], 'result1', function (err) {
       if (err) return done(err)
-      cache.query([{ test: [1, 'x'] }], function (err, res1) {
+      cache.query([{ test: ['1', 'x'] }], function (err, res1) {
         if (err) return done(err)
         assert.equal(res1.cached, true)
-        assert.equal(res1.key, 'c4ca4238a0b923820dcc509a6f75849b')
-        assert.equal(res1.hit, 'result1')
-        done()
-      })
-    })
-  })
-
-  it('must configure cache: array key/object', function (done) {
-    var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
-    var cache = new Cache({ cacheManager: memoryCache,
-      key: function (data) {
-        return data.test
-      } })
-    cache.push([{ test: [1, 2] }], 'result1', function (err) {
-      if (err) return done(err)
-      cache.query([{ test: [1, 2] }], function (err, res1) {
-        if (err) return done(err)
-        assert.equal(res1.cached, true)
-        assert.equal(res1.key, 'f79408e5ca998cd53faf44af31e6eb45')
+        assert.equal(res1.key, '1')
         assert.equal(res1.hit, 'result1')
         done()
       })
@@ -317,15 +276,15 @@ describe('cache-manager', function () {
   it('must configure cache: func', function (done) {
     var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
     var cache = new Cache({ cacheManager: memoryCache,
-      key: function (config) {
-        return config.test * 2
+      getKey: function (config) {
+        return (config.test * 2).toString()
       } })
     cache.push([{ test: 4 }], 'result1', function (err) {
       if (err) return done(err)
       cache.query([{ test: 4 }], function (err, res1) {
         if (err) return done(err)
         assert.equal(res1.cached, true)
-        assert.equal(res1.key, 'c9f0f895fb98ab9159f51fd0297e236d')
+        assert.equal(res1.key, '8')
         assert.equal(res1.hit, 'result1')
         done()
       })
@@ -338,7 +297,7 @@ describe('cache-manager', function () {
     beforeEach(function (done) {
       var memoryCache = cacheManager.caching({ store: 'memory', max: 2, ttl: 10 })
       cache = new Cache({ cacheManager: memoryCache,
-        key: function (data) {
+        getKey: function (data) {
           return data.test
         } })
       cache.push([{ test: '1' }], 'result1', function (err) {
@@ -390,7 +349,7 @@ describe('cache-manager', function () {
     beforeEach(function (done) {
       var memoryCache = cacheManager.caching({ store: 'memory', max: 20, ttl: 0.030 })
       cache = new Cache({ cacheManager: memoryCache,
-        key: function (data) {
+        getKey: function (data) {
           return data.test
         } })
       cache.push([{ test: '1' }], 'result1', done)
@@ -446,7 +405,7 @@ describe('cache-manager', function () {
     beforeEach(function (done) {
       var memoryCache = cacheManager.caching({ store: 'memory', max: 20, ttl: 0.030 })
       cache = new Cache({ cacheManager: memoryCache,
-        key: function (data) {
+        getKey: function (data) {
           return data.test
         },
         maxAge: function (args, output) {
@@ -641,7 +600,7 @@ describe('cache-manager', function () {
     }
 
     var memoryCache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10 })
-    var cache = new Cache({ cacheManager: memoryCache, key: getKey })
+    var cache = new Cache({ cacheManager: memoryCache, getKey: getKey })
     cache.push(['k1'], 'result')
     cache.query(['k1'], function (err, value) {
       if (err) return done(err)

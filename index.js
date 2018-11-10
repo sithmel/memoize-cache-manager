@@ -1,17 +1,18 @@
 var snappy = require('./utils/snappy')
 var BaseCache = require('memoize-cache/base-cache')
 var parallel = require('./utils/parallel')
-var waterfall = require('./utils/waterfall')
 
 function CacheManagerAdapter (opts) {
   BaseCache.call(this, opts)
   this.cacheManager = this.opts.cacheManager
+  this.compress = function (obj, cb) { cb(null, obj) }
+  this.decompress = function (str, cb) { cb(null, str) }
   if (this.opts.compress) {
     if (!snappy.isSnappyInstalled) {
       throw new Error('The "compress" option requires the "snappy" library. Its installation failed (hint missing libraries or compiler)')
     }
-    this.serialize = waterfall([this.serialize, snappy.compress])
-    this.deserialize = waterfall([snappy.decompress, this.deserialize])
+    this.compress = snappy.compress
+    this.decompress = snappy.decompress
   }
 }
 
@@ -20,11 +21,19 @@ CacheManagerAdapter.prototype.constructor = CacheManagerAdapter
 
 CacheManagerAdapter.prototype._set = function _cacheSet (keyObj, payload, maxAge, next) {
   var k = keyObj.key
-  this.cacheManager.set(k, payload, maxAge ? { ttl: maxAge } : undefined, next)
+  var that = this
+  this.compress(payload, function (err, compressed) {
+    if (err) return next(err)
+    that.cacheManager.set(k, compressed, maxAge ? { ttl: maxAge } : undefined, next)
+  })
 }
 
 CacheManagerAdapter.prototype._get = function _cacheGet (key, next) {
-  this.cacheManager.get(key, next)
+  var that = this
+  this.cacheManager.get(key, function (err, payload) {
+    if (err) return next(err)
+    that.decompress(payload, next)
+  })
 }
 
 CacheManagerAdapter.prototype.purgeByKeys = function cachePurgeByKeys (keys, next) {
