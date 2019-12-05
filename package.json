@@ -1,6 +1,6 @@
 {
   "name": "memoize-cache-manager",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "A cache support for memoized functions (cache-manager adapter)",
   "main": "index.js",
   "scripts": {
